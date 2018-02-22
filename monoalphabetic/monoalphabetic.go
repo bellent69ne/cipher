@@ -56,10 +56,43 @@ func Encrypt(plain string, key []rune) string {
 
     return string(cipher)
 }
-//
-//func Decrypt(cipher, key *string) string {
-//
-//}
+
+func reverseRotor(key []rune) (map[rune]rune, error) {
+    rotor := make(map[rune]rune)
+
+    if keyIsValid(key) {
+        i := 0
+
+        for upper, lower := 'A', 'a'; upper <= 'Z';
+            upper, lower = upper + 1, lower + 1 {
+            rotor[key[i]] = upper
+            rotor[key[i] + 32] = lower
+            i++
+        }
+    } else {
+        return nil, errors.New("invalid key... Contains runes other than english letters")
+    }
+
+    return rotor, nil
+}
+
+func Decrypt(cipher string, key []rune) string {
+    rotor, err := reverseRotor(key)
+    if err != nil {
+        fmt.Printf("Error occured: %v\n", err)
+    }
+
+    plain:= []rune(cipher)
+
+    for i, rn := range plain {
+        elem, ok := rotor[rn]
+        if ok {
+            plain[i] = elem
+        }
+    }
+
+    return string(plain)
+}
 
 func KeyGen() []rune {
     seed := rand.NewSource(time.Now().UnixNano())
