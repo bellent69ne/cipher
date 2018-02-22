@@ -7,70 +7,54 @@ import (
     "errors"
 )
 
-func lowerCaseKey(key []rune) []rune {
-    lowerCase := make([]rune, len(key))
-
-    for i := range lowercase {
-        lowercase[i] = key[i] + rune(32)
+func keyIsValid(key []rune) bool {
+    for _, rn := range key {
+        if rn >= 'A' && rn <= 'Z' ||
+            rn >= 'a' && rn <= 'z' {
+                continue
+            } else {
+                return false
+            }
     }
-
-    return lowerCase
+    return true
 }
 
 func makeRotor(key []rune) (map[rune]rune, error) {
-    var begin, end rune
+    rotor := make(map[rune]rune)
 
-    fillRotor := func() map[rune]rune {
-        rot := make(map[rune]rune)
+    if keyIsValid(key) {
         i := 0
-        for rn := begin; rn <= end; rn++ {
-            rot[rn] = key[i]
+
+        for upper, lower := 'A', 'a'; upper <= 'Z';
+            upper, lower = upper + 1, lower + 1 {
+            rotor[upper] = key[i]
+            rotor[lower] = key[i] + 32
             i++
         }
-        return rot
-    }
-    var rotor map[rune]rune
-    if key[0] >= 'A' && key[0] <= 'Z' {
-        //i := 0
-        //for rn := 'A'; rn <= 'Z'; rn++ {
-        //    rotor[rn] = key[i]
-        //    i++
-        //}
-        begin, end = 'A', 'B'
-        rotor = fillRotor()
-    } else if key[0] >= 'a' && key[0] <= 'z' {
-    //    for rn := 'a'; rn < 'z'; rn++ {
-    //        rotor[rn] = key[i]
-    //        i++
-    //    }
-        begin, end = 'a', 'b'
-        rotor = fillRotor()
     } else {
-        return (nil, errors.New("invalid key...Contains runes other than english letters"))
+        return nil, errors.New("invalid key... Contains runes other than english letters")
     }
 
-    return (rotor, nil)
+    return rotor, nil
 }
 
-func Encrypt(plain, key []rune) string {
-    //rotor := make(map[rune]rune)
-    //i := 0
-    //for rn := 'A'; rn <= 'Z'; rn++ {
-    //    rotor[rn] = key[i]
-    //    i++
-    //}
+func Encrypt(plain string, key []rune) string {
 
-    //for rn := 'a'; rn <= 'z'; rn++ {
-    //    rotor[rn] = key[i]
-    //}
     rotor, err := makeRotor(key)
     if err != nil {
         fmt.Printf("Error occured: %v\n", err)
     }
 
-    fmt.Println(rotor)
+    cipher := []rune(plain)
 
-    return ""
+    for i, rn := range cipher {
+        elem, ok := rotor[rn]
+        if ok {
+            cipher[i] = elem
+        }
+    }
+
+    return string(cipher)
 }
 //
 //func Decrypt(cipher, key *string) string {
@@ -96,11 +80,8 @@ func KeyGen() []rune {
 
         chars = remove(chars, index)
     }
-    fmt.Println()
-    fmt.Println(key)
-    fmt.Println(string(key))
 
-    return ""
+    return key
 }
 
 func remove(slice []rune, i int) []rune {
